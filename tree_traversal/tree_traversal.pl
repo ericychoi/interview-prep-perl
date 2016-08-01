@@ -1,58 +1,109 @@
+use Node;
+
 use warnings;
 use strict;
 
-my $tree; # pointer to top of tree
+sub init {
+  my $nodes = {};
+  for (qw(a b c d f h i)) {
+    $nodes->{$_} = Node->new(label => $_);
+  }
+  $nodes->{b}{L} = $nodes->{c};
+  $nodes->{b}{R} = $nodes->{d};
+  $nodes->{d}{L} = $nodes->{a};
+  $nodes->{a}{L} = $nodes->{f};
+  $nodes->{f}{R} = $nodes->{i};
+  $nodes->{d}{R} = $nodes->{h};
+  return $nodes->{b};
+}
 
-my @stack. @queue;
+sub sample_tree {
+  my $nodes = {};
+  for ('a'..'i') {
+    $nodes->{$_} = Node->new(label => $_);
+  }
+  $nodes->{f}{L} = $nodes->{b};
+  $nodes->{b}{L} = $nodes->{a};
+  $nodes->{b}{R} = $nodes->{d};
+  $nodes->{d}{L} = $nodes->{c};
+  $nodes->{d}{R} = $nodes->{e};
+  $nodes->{f}{R} = $nodes->{g};
+  $nodes->{g}{R} = $nodes->{i};
+  $nodes->{i}{L} = $nodes->{h};
+  return $nodes->{f};
+}
 
-sub tree_walker {
-    if ($isBFS) {
-        push @queue, $tree;
+sub in_order {
+  my ($n) = @_;
+  my @s = ();
+  while (defined $n || scalar(@s) != 0) {
+    if (defined $n) {
+      push @s, $n;
+      $n = $n->L();
     }
     else {
-        unshift @stack, $tree;
+      $n = pop @s;
+      print $n->label, " ";
+      $n = $n->R;
     }
-    while(@stack) {
-        eval_node();
-    }
+  }
+  print "\n";
 }
 
-sub eval_node {
-    my $list;
-    if ($isBFS) {
-        $list = \@queue;
+sub pre_order {
+  my ($n) = @_;
+  my @s = ($n);
+  while (scalar(@s) != 0) {
+    $n = pop @s;
+    print $n->label, ' ';
+    if (defined ($n->R)) {
+      push @s, $n->R;
+    }
+    if (defined ($n->L)) {
+      push @s, $n->L;
+    }
+  }
+  print "\n";
+}
+
+sub post_order {
+  my ($n) = @_;
+  my @s = ();
+  my $visited;
+  while (defined $n || scalar(@s) != 0) {
+    if (defined $n) {
+      push @s, $n;
+      $n = $n->L;
     }
     else {
-        $list = \@stack;
+      my $m = $s[$#s];
+      if (defined $m->R && $visited != $m->R) {
+        $n = $m->R;
+      }
+      else {
+        print $m->label, ' ';
+        pop @s;
+        $visited = $m;
+      }
     }
-    $node = shift @$list;
-    if ($isBFS) {
-        push @$list, @{$node->{children}} if $node->{children};
-    }
-    else {
-        unshift @$list, @{$node->{children}} if $node->{children};
-    }
-    print_node($node);
+  }
+  print "\n";
 }
 
-##
+my $root = init();
+print "in_order: ";
+in_order($root);
+print "in_order (sample_tree): ";
+in_order(sample_tree());
 
-sub print_node {
-    print $node->{content}, "\n";
-}
+print "pre_order: ";
+pre_order($root);
+print "pre_order (sample_tree): ";
+pre_order(sample_tree());
 
-#recursive
+print "post_order: ";
+post_order($root);
+print "post_order (sample_tree): ";
+post_order(sample_tree());
 
-sub eval_node_rec {
-    print_node($node);
-    for my $child (@{$node->{children}}) {
-        eval_node_rec($child);
-    }
-}
-
-sub tree_walker_rec {
-    eval_node_rec($tree);
-}
-
-# what about BFS
-
+## TODO: deserialize tree?
